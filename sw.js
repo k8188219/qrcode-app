@@ -8,7 +8,7 @@ self.addEventListener('install', (event) => {
       cache.addAll([
         "./_next/static/_5jWaOEZrWQsicZEWKlba/_buildManifest.js",
         "./_next/static/_5jWaOEZrWQsicZEWKlba/_ssgManifest.js",
-        "/_next/static/css/72a0ac6edce85bcf.css",
+        "./_next/static/css/72a0ac6edce85bcf.css",
         "./_next/static/chunks/117-48ad67b5ecbfb56b.js",
         "./_next/static/chunks/469-0112b0ada5978ec4.js",
         "./_next/static/chunks/framework-f66176bb897dc684.js",
