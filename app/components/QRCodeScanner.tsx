@@ -38,7 +38,7 @@ export default function QRCodeScanner() {
   const getCameras = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices()
-      const videoDevices = devices.filter((device) => device.kind === "videoinput")
+      const videoDevices = devices.filter((device) => device.kind === "videoinput" && !!device.deviceId)
       console.log("Available cameras:", videoDevices)
       setCameras(videoDevices)
       if (videoDevices.length > 0 && !selectedCamera) {
@@ -54,7 +54,6 @@ export default function QRCodeScanner() {
     console.log("Starting camera with deviceId:", selectedCamera)
     stopCamera()
     setError(null)
-    getCameras()
     try {
       const constraints = {
         video: { deviceId: selectedCamera ? { exact: selectedCamera } : undefined },
@@ -62,6 +61,12 @@ export default function QRCodeScanner() {
       console.log("Using constraints:", constraints)
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       console.log("Stream obtained:", stream)
+
+      if (!cameras.length) {
+        getCameras();
+        return;
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         streamRef.current = stream
@@ -142,18 +147,20 @@ export default function QRCodeScanner() {
     <Card className="w-full max-w-md mx-auto">
       <CardContent className="p-4 relative">
         <div className="space-y-4">
-          <Select value={selectedCamera} onValueChange={handleCameraChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a camera" />
-            </SelectTrigger>
-            <SelectContent>
-              {cameras.map((camera) => (
-                <SelectItem key={camera.deviceId} value={camera.deviceId || `camera-${camera.deviceId}`}>
-                  {camera.label || `Camera ${camera.deviceId}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!!cameras.length && (
+            <Select value={selectedCamera} onValueChange={handleCameraChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a camera" />
+              </SelectTrigger>
+              <SelectContent>
+                {cameras.map((camera) => (
+                  <SelectItem key={camera.deviceId} value={camera.deviceId || `camera-${camera.deviceId}`}>
+                    {camera.label || `Camera ${camera.deviceId}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button onClick={startCamera} className="w-full">
             <Camera className="mr-2 h-4 w-4" /> Start Camera
           </Button>
