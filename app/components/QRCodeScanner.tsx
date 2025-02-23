@@ -72,7 +72,6 @@ export default function QRCodeScanner() {
         streamRef.current = stream
         await videoRef.current.play()
         setIsScanning(true)
-        scanQRCode()
       }
     } catch (err) {
       console.error("Error accessing the camera:", err)
@@ -93,43 +92,54 @@ export default function QRCodeScanner() {
     setIsScanning(false)
   }
 
-  const scanQRCode = () => {
-    if (videoRef.current && canvasRef.current) {
+  useEffect(() => {
+    if (!isScanning) return;
+    let lastTime = 0;
+    let flag = true;
+    const scanFrame = (time: number) => {
+      if (!flag) return;
+      if (!videoRef.current || !canvasRef.current) return;
       const video = videoRef.current
       const canvas = canvasRef.current
       const context = canvas.getContext("2d")
 
-      if (context) {
-        const scanFrame = () => {
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.height = video.videoHeight
-            canvas.width = video.videoWidth
-            context.drawImage(video, 0, 0, canvas.width, canvas.height)
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-            const code = jsQR(imageData.data, imageData.width, imageData.height)
-
-            if (code) {
-              const newResult: ScanResult = { id: Date.now().toString(), data: code.data }
-              setScanResults((prevResults) => {
-                if (!prevResults.some((result) => result.data === newResult.data)) {
-                  return [...prevResults, newResult]
-                }
-                return prevResults
-              })
-            }
-
-            if (isScanning) {
-              requestAnimationFrame(scanFrame)
-            }
-          } else {
-            requestAnimationFrame(scanFrame)
-          }
-        }
-
-        scanFrame()
+      if (!context) return;
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        requestAnimationFrame(scanFrame); // skip if video not ready
+        return;
       }
+
+      if (time - lastTime <= 200) {
+        requestAnimationFrame(scanFrame); // limit to 5fps
+        return;
+      }
+      lastTime = time;
+
+      canvas.height = video.videoHeight
+      canvas.width = video.videoWidth
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+      if (code && code.data) {
+        const newResult: ScanResult = { id: Date.now().toString(), data: code.data }
+        setScanResults((prevResults) => {
+          if (!prevResults.some((result) => result.data === newResult.data)) {
+            return [...prevResults, newResult]
+          }
+          return prevResults
+        })
+      }
+
+      requestAnimationFrame(scanFrame)
     }
-  }
+
+    requestAnimationFrame(scanFrame);
+
+    return () => {
+      flag = false;
+    }
+  }, [isScanning])
 
   const handleCameraChange = (cameraId: string) => {
     setSelectedCamera(cameraId)
