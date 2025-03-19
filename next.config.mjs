@@ -8,8 +8,9 @@ try {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  assetPrefix: './',
+  distDir: 'docs',
   basePath: '/qrcode-app',
+  trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
