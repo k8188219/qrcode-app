@@ -1,4 +1,4 @@
-const STATIC_NAME = 'static-1'
+const STATIC_NAME = 'static-2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
