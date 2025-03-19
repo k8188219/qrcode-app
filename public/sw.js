@@ -6,7 +6,7 @@ self.addEventListener('install', (event) => {
       const cache = await caches.open(STATIC_NAME)
       // cache.add(file path)
       cache.addAll([
-        // run command: find docs -type f -printf './%P\n'
+        // run command: find docs -type f -printf '"./%P",\n'
       ])
     })()
   )
